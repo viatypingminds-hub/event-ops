@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { supabaseBrowser } from "../lib/supabaseBrowser";
 
 const EVENT_NAME = "Masterclass";
 const DEFAULT_CAPACITY = 40;
@@ -62,6 +63,7 @@ export default function EventOps() {
   const [dateError, setDateError] = useState("");
 
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [userEmail, setUserEmail] = useState("");
 
   const sigRef = useRef(null);
   const toastTimer = useRef(null);
@@ -79,8 +81,14 @@ export default function EventOps() {
       })
       .catch((e) => setLoadError(String(e)))
       .finally(() => setLoading(false));
+    supabaseBrowser().auth.getUser().then(({ data }) => setUserEmail(data?.user?.email || ""));
     return () => { clearTimeout(toastTimer.current); clearTimeout(confirmTimer.current); };
   }, []);
+
+  async function signOut() {
+    await supabaseBrowser().auth.signOut();
+    window.location.href = "/login";
+  }
 
   function flash(msg) {
     clearTimeout(toastTimer.current);
@@ -381,6 +389,12 @@ export default function EventOps() {
             <button type="button" className="ops-btn-ghost" onClick={openDateDialog} style={css("height: 40px; padding: 0 16px; border: 1px solid #d5dae0; background: #fff; color: #33393f; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px;")}><span style={css("font-size: 16px; line-height: 1; font-weight: 400;")}>+</span>Add class date</button>
             <button type="button" className="ops-btn-ghost" onClick={() => flash("Exported " + rows.length + " rows to CSV")} style={css("height: 40px; padding: 0 16px; border: 1px solid #d5dae0; background: #fff; color: #33393f; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;")}>Export list</button>
             <button type="button" className="ops-btn-primary" onClick={openNew} style={css("height: 40px; padding: 0 18px; border: 1px solid #a8261f; background: #a8261f; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;")}><span style={css("font-size: 17px; line-height: 1; font-weight: 400;")}>+</span>New registration</button>
+            {userEmail && (
+              <div style={css("display: flex; align-items: center; gap: 10px; padding-left: 4px; margin-left: 4px; border-left: 1px solid #eceff2;")}>
+                <span style={css("font-size: 12.5px; color: #8a919b;")}>{userEmail}</span>
+                <button type="button" className="ops-link-muted" onClick={signOut} style={css("height: 40px; padding: 0 4px; border: none; background: transparent; color: #6b7480; font-size: 13px; font-weight: 500; cursor: pointer;")}>Sign out</button>
+              </div>
+            )}
           </div>
         </div>
       </header>
