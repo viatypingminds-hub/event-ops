@@ -21,6 +21,21 @@ function isValidEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
+function getNextParam() {
+  return new URLSearchParams(window.location.search).get("next") || "";
+}
+
+async function postSignInRedirect() {
+  const nextParam = getNextParam();
+  if (nextParam && nextParam.startsWith("/")) {
+    window.location.href = nextParam;
+    return;
+  }
+  const { data: { user } } = await supabaseBrowser().auth.getUser();
+  const { data: profile } = await supabaseBrowser().from("profiles").select("role").eq("id", user.id).single();
+  window.location.href = profile?.role === "admin" ? "/dashboard" : "/my-registration";
+}
+
 export default function LoginPage() {
   const [mode, setMode] = useState("signin");
 
@@ -48,9 +63,12 @@ export default function LoginPage() {
     setError("");
     setBusy(true);
     const { error: signInError } = await supabaseBrowser().auth.signInWithPassword({ email: email.trim(), password });
-    setBusy(false);
-    if (signInError) { setError("Incorrect email or password."); return; }
-    window.location.href = "/";
+    if (signInError) {
+      setBusy(false);
+      setError("Incorrect email or password.");
+      return;
+    }
+    await postSignInRedirect();
   }
 
   async function submitSignUp(e) {
@@ -61,10 +79,12 @@ export default function LoginPage() {
     if (password !== confirm) { setError("Passwords don't match."); return; }
     setError("");
     setBusy(true);
+    const nextParam = getNextParam();
+    const redirectUrl = window.location.origin + "/auth/callback" + (nextParam ? "?next=" + encodeURIComponent(nextParam) : "");
     const { error: signUpError } = await supabaseBrowser().auth.signUp({
       email: trimmed,
       password,
-      options: { emailRedirectTo: window.location.origin + "/auth/callback" }
+      options: { emailRedirectTo: redirectUrl }
     });
     setBusy(false);
     if (signUpError) { setError(signUpError.message); return; }
