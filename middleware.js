@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const ALLOWED_DOMAIN = (process.env.ALLOWED_EMAIL_DOMAIN || "").toLowerCase();
-
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
   if (pathname === "/login" || pathname.startsWith("/auth/callback")) {
@@ -29,10 +27,8 @@ export async function middleware(req) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const email = (user?.email || "").toLowerCase();
-  const authorized = !!user && (!ALLOWED_DOMAIN || email.endsWith("@" + ALLOWED_DOMAIN));
 
-  if (!authorized) {
+  if (!user) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
   }

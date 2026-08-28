@@ -49,8 +49,8 @@ export default function SetPasswordPage() {
         </div>
 
         <form onSubmit={submit}>
-          <div style={css("font-size: 15px; font-weight: 500; color: #1a1d21; margin-bottom: 4px;")}>Set your password</div>
-          <div style={css("font-size: 13px; color: #6b7480; margin-bottom: 18px;")}>You're signed in — choose a password for future sign-ins.</div>
+          <div style={css("font-size: 15px; font-weight: 500; color: #1a1d21; margin-bottom: 4px;")}>Reset your password</div>
+          <div style={css("font-size: 13px; color: #6b7480; margin-bottom: 18px;")}>Choose a new password for your account.</div>
 
           <label style={css("display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; color: #4a525b;")}>
             New password
